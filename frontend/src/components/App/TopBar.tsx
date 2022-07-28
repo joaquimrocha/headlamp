@@ -181,8 +181,7 @@ export function PureTopBar({
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const openSideBar =
-    isMedium && !!(isSidebarOpenUserSelected === undefined ? false : isSidebarOpen);
+  const openSideBar = !!(isSidebarOpenUserSelected === undefined ? false : isSidebarOpen);
 
   const classes = useStyles({ isSidebarOpen: openSideBar, isSmall });
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
