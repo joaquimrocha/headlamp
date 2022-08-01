@@ -16,7 +16,11 @@ import { useHistory } from 'react-router-dom';
 import LocaleSelect from '../../i18n/LocaleSelect/LocaleSelect';
 import { getToken, setToken } from '../../lib/auth';
 import { useCluster } from '../../lib/k8s';
-import { HeaderActionType, setWhetherSidebarOpen } from '../../redux/actions/actions';
+import {
+  HeaderActionType,
+  setVersionDialogOpen,
+  setWhetherSidebarOpen,
+} from '../../redux/actions/actions';
 import { useTypedSelector } from '../../redux/reducers/reducers';
 import { ClusterTitle } from '../cluster/Chooser';
 import ErrorBoundary from '../common/ErrorBoundary';
@@ -114,6 +118,16 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
       justifyContent: 'center',
     },
+    versionLink: {
+      backgroundColor: theme.palette.grey[50],
+      color: theme.palette.grey[800],
+      textAlign: 'center',
+    },
+    userMenu: {
+      '& .MuiMenu-list': {
+        paddingBottom: 0,
+      },
+    },
   })
 );
 
@@ -179,6 +193,7 @@ export function PureTopBar({
   const { t } = useTranslation('frequent');
   const isSmall = useMediaQuery('(max-width:960px)');
   const isMedium = useMediaQuery('(max-width:960px)');
+  const dispatch = useDispatch();
 
   const openSideBar =
     isMedium && !!(isSidebarOpenUserSelected === undefined ? false : isSidebarOpen);
@@ -221,6 +236,7 @@ export function PureTopBar({
         handleMobileMenuClose();
       }}
       style={{ zIndex: 1400 }}
+      className={classes.userMenu}
     >
       <MenuItem
         component="a"
@@ -235,6 +251,19 @@ export function PureTopBar({
           <Icon icon="mdi:logout" />
         </ListItemIcon>
         <ListItemText primary={t('Log out')} secondary={hasToken ? null : t('(No token set up)')} />
+      </MenuItem>
+      <MenuItem
+        component="a"
+        onClick={() => {
+          dispatch(setVersionDialogOpen(true));
+          handleMenuClose();
+        }}
+        dense
+        className={classes.versionLink}
+      >
+        <ListItemText>
+          {window.config.HEADLAMP_PRODUCT_NAME} {window.config.HEADLAMP_VERSION}
+        </ListItemText>
       </MenuItem>
     </Menu>
   );

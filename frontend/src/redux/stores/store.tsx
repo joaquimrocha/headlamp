@@ -6,6 +6,12 @@ import reducers from '../reducers/reducers';
 import { INITIAL_STATE as UI_INITIAL_STATE } from '../reducers/ui';
 import rootSaga from '../sagas/sagas';
 
+window.config = {
+  HEADLAMP_VERSION: process.env.REACT_APP_HEADLAMP_VERSION,
+  HEADLAMP_GIT_VERSION: process.env.REACT_APP_HEADLAMP_GIT_VERSION,
+  HEADLAMP_PRODUCT_NAME: process.env.REACT_APP_HEADLAMP_PRODUCT_NAME,
+};
+
 const initialState = {
   filter: FILTER_INITIAL_STATE,
   ui: UI_INITIAL_STATE,
