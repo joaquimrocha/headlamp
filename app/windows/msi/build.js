@@ -2,10 +2,10 @@
 // Reference https://ourcodeworld.com/articles/read/927/how-to-create-a-msi-installer-in-windows-for-an-electron-framework-application
 const { MSICreator } = require('electron-wix-msi');
 const path = require('path');
-const info = require('../package.json');
+const info = require('../../package.json');
 
-const APP_DIR = path.resolve(__dirname, '../dist/win-unpacked');
-const OUT_DIR = path.resolve(__dirname, '../dist');
+const APP_DIR = path.resolve(__dirname, '../../dist/win-unpacked');
+const OUT_DIR = path.resolve(__dirname, '../../dist');
 
 const nameOptions = {
   productName: info.productName,
@@ -28,7 +28,7 @@ const msiOptions = {
   name: nameOptions.productName,
   manufacturer: info.author.name,
   version: process.env.npm_package_version,
-  appIconPath: path.resolve(__dirname, '../build/icons/icon.ico'),
+  appIconPath: path.resolve(__dirname, '../../build/icons/icon.ico'),
   ui: {
     chooseDirectory: true,
   },
