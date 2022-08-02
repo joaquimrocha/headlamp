@@ -53,3 +53,10 @@ npm run lint-fix
 
 # test type script error checks
 npm run tsc
+
+# test upgrade adds missing files
+rm jsconfig.json tsconfig.json src/headlamp-plugin.d.ts
+node bin/headlamp-plugin.js upgrade --no-package-updates
+stat jsconfig.json
+stat tsconfig.json
+stat src/headlamp-plugin.d.ts
