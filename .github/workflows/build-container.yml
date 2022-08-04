@@ -1,4 +1,9 @@
-name: Build Container
+
+# "Setup minikube as CI step in GitHub Actions"
+# https://minikube.sigs.k8s.io/docs/tutorials/setup_minikube_in_github_actions/
+# https://github.com/marketplace/actions/setup-minikube
+
+name: Build Container and test
 on:
   pull_request:
     paths:
@@ -9,12 +14,32 @@ on:
 
 jobs:
   build:
-    name: Build Image
     runs-on: ubuntu-latest
+    name: build discover and deploy
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+    - name: Start cluster
+      uses: medyagh/setup-minikube@master
+      # now you can run kubectl to see the pods in the cluster
+    - name: Try the cluster!
+      run: kubectl get pods -A
     - name: Build image
       run: |
-        cd $GITHUB_WORKSPACE
+        export SHELL=/bin/bash
+        eval $(minikube -p minikube docker-env)
         make image
+        echo -n "verifying images:"
+        docker images
+    - name: Deploy to cluster
+      run:
+        kubectl apply -f kubernetes-headlamp.yaml
+    - name: Test service URLs
+      run: |
+        minikube service list
+        minikube service headlamp -n kube-system --url
+        sleep 5
+        minikube service headlamp -n kube-system --url
+        echo -n "------------------opening the service------------------"
+        export SERVICE_URL=$(minikube service headlamp -n kube-system --url | tail -1)
+        echo -n $SERVICE_URL
+        curl -L $SERVICE_URL
