@@ -661,26 +661,38 @@ async function getShellEnv(): Promise<NodeJS.ProcessEnv> {
 }
 
 /**
- * Check if a port is available by attempting to create a server on it
+ * Check if a port is available by attempting to create a server on it.
+ * On Windows, we need to check both IPv4 (127.0.0.1) and IPv6 (::1) addresses
+ * because 'localhost' resolution can vary and cause false negatives.
  */
 async function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise(resolve => {
-    const server = net.createServer();
+  const checkPort = (host: string): Promise<boolean> => {
+    return new Promise(resolve => {
+      const server = net.createServer();
 
-    server.once('error', () => {
-      resolve(false);
+      server.once('error', () => {
+        resolve(false);
+      });
+
+      server.once('listening', () => {
+        server.close(() => resolve(true));
+      });
+
+      try {
+        server.listen({ port, host, exclusive: true });
+      } catch (err) {
+        server.emit('error', err as NodeJS.ErrnoException);
+      }
     });
+  };
 
-    server.once('listening', () => {
-      server.close(() => resolve(true));
-    });
+  // On Windows, check IPv4 explicitly to avoid issues with localhost resolution
+  // which may resolve to IPv6 (::1) first, causing incorrect port availability detection
+  if (process.platform === 'win32') {
+    return checkPort('127.0.0.1');
+  }
 
-    try {
-      server.listen({ port, host: 'localhost', exclusive: true });
-    } catch (err) {
-      server.emit('error', err as NodeJS.ErrnoException);
-    }
-  });
+  return checkPort('localhost');
 }
 
 /**
