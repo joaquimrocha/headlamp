@@ -11,48 +11,96 @@ The idea is that we list the steps here as a guide and automate it along the way
 
 We follow the [semantic versioning](https://semver.org/) guide.
 
-## Steps to perform a Headlamp release  
+## Install the Headlamp releaser
+
+The Headlamp releaser script helps with the different release steps.
+Before releasing Headlamp, you need to make sure you can use the
+Headlamp releaser script:
+
+1. In a Headlamp repo clone, go to _tools/releaser_
+2. Install and build the tool:
+   * npm run install
+   * npm run build
+   * npm link
+3. Verify you can run the releaser:
+   * releaser -h
+
+## Release all the shipped plugins that have changes
+
+Any PRs that have been merged to shipped plugins should be available
+in the new version of Headlamp, and for updating the plugins we
+ship, we need to make sure we have their new version published.
+
+Here are the steps to publish plugins:
+
+1. Install the plugin-releaser if you don't have it
+   * npm run install
+   * npm run build
+   * npm link
+2. List the plugins that have changes
+   * plugin-releaser list --verbose --changed
+3. For the shipped plugins in the list from the command above, do:
+   * plugin-releaser bump MY_PLUGIN X.Y.Z # X.Y.Z is the new version
+
+
+## Steps to perform a Headlamp release
 
 When ready to perform a release (changes worth releasing since last time is done, QA is done), then:
 
-### 1. Create a new branch
+### 1. Create a new release candidate branch
 
-Create a new branch called "rc-X.Y.Z" where X.Y.Z is the new release version.
+The following command bumps the release version of the Healdamp app
+and creates a commit:
 
-### 2. Bump the app “version”
+1. `releaser start X.Y.Z`
+2. `git log  # for checking that the commit was done`
 
-On the main branch, bump the “version” field in app/package.json, run "npm i" inside app/ and commit with:
+### 2. Push this branch and create a PR
 
-```shell
-git commit app/package* -m "app: Bump version to X.Y.Z"
-```
+1. `git push origin hl-rc-X.Y.Z`
+2. Create the PR through `gh` or via the UI
 
-Bug fix: make a branch off the tag, and cherry pick everything in. Or make a branch off main and remove merge commits compared to previous tag (On the branch to remove merge commits, do: "`git rebase main`").
+### 3. Build the apps associated with the release
 
-```shell
-git log v0.25.0.. --oneline
-```
+The following command builds the apps for the release candidate branch, for all platforms:
 
+1. `releaser ci app --build hl-rc-X.Y.Z`
 
+You can use `--platform` to build for a specific platform.
 
-### 3. Start a release draft
+### 4. Create the release management issue and release notes draft
 
-Start a release draft by manually running the "Create release draft" action (it's important to give it the right release name as it creates links with that number in the draft):
+Go to GitHub Actions and run the [Create release draft](https://github.com/headlamp-k8s/headlamp/actions/workflows/draft-release.yml) workflow for the `hl-rc-X.Y.Z` branch.
 
-![Release Version](release-version.png)
+After the issue is done, coordinate with contributors on Slack to perform the manual testing.
 
-### 4. Check the list of changes since the last release
+### 4. Prepare the release notes
 
 Check the list of changes since the last release:
 
 ```
-git log \`git describe \--abbrev=0\`..
+git log --oneline --cherry --topo-order PREV_TAG..HEAD
 ```
 
-Then go to the release draft created in the previous step and fill it accordingly.
+Then go to the release management issue created in the previous step and fill the release notes in accordingly. For that:
 
-Look at previous releases. Write for humans: no context part, like "frontend:". Put github user name in "(thanks @XXX )" at end of line for external contributors.
+1. Check one by one the commits and assign them to the respective category.
+2. Summarize the contribution in a human-readable way
+3. Not all commits need to be in the release notes
+4. Group commits that are related changes if they are done by the team of by the same individual contributor
+5. For non-core individual contributors, add a "Thanks to @USER_NAME" message at the end of the summary line
 
+Once the notes are done and acknowledged by the release manager, copy them to the actual release draft created in the previous step.
+
+### 5. Upload tested/built artifacts to the release draft
+
+You can use the following command to verify the app build runs:
+
+```shell
+  releaser ci app --list
+```
+
+Copy the IDs of the builds you want to upload to the release draft.
 
 ### 5. App signing
 
@@ -110,4 +158,4 @@ Other distribution channels like flathub, homebrew, minikube, will be done by au
 
 ### 11. Announce on social media
 
-Ask someone in the social team (Joaquim or Chris) to toot/tweet/post about it from the social media accounts.
+Ask someone in the social team (Joaquim or Lexi) to toot/tweet/post about it from the social media accounts.
